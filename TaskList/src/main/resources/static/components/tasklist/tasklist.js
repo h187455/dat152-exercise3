@@ -178,4 +178,4 @@ class TaskList extends HTMLElement {
 		return rows.length;
     }
 }
-customElements.define('groupx-tasklist', TaskList);
+customElements.define('group8-tasklist', TaskList);
