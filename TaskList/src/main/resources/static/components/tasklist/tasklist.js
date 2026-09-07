@@ -50,6 +50,10 @@ class TaskList extends HTMLElement {
 		const select = taskrow.content.querySelector("select");
 		const optionT = select.querySelector("option");
 		
+		if (select.children.length > 1) {
+            return; 
+        }
+		
 		for (const status of allstatuses) {
 			const option = optionT.cloneNode(true);
 			option.value = status;
@@ -104,6 +108,7 @@ class TaskList extends HTMLElement {
 		selectedRow.dataset.id = task.id;
 		
 		const select = row.querySelector("select");
+		select.value = "0";
 		const button = row.querySelector("button");
 		
 		select.addEventListener("change", ()=> {
