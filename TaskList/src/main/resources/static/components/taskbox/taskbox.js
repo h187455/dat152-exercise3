@@ -15,7 +15,7 @@ tasktable.innerHTML = `
   * TaskView
   * Manage the whole view
   */
-class TaskView extends HTMLElement {
+class TaskBox extends HTMLElement {
 
     constructor() {
         super();
@@ -33,4 +33,4 @@ class TaskView extends HTMLElement {
      */
 	
 }
-customElements.define('group8-taskview', TaskList);
+customElements.define('group8-taskbox', TaskBox);

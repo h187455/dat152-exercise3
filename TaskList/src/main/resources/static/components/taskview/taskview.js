@@ -1,6 +1,10 @@
-const viewTemplate = document.createElement("view-template");
-template.innerHTML = `
+import "./components/tasklist/tasklist.js";
+import "./components/taskbox/taskbox.js";
+
+const viewTemplate = document.createElement("template");
+viewTemplate.innerHTML = `
     <link rel="stylesheet" type="text/css" href="${new URL('taskview.css',import.meta.url)}">
+	
 	
 	<h1>Tasks</h1>
 	
@@ -11,15 +15,15 @@ template.innerHTML = `
 	<GROUP8-TASKBOX></GROUP8-TASKBOX>
 `;
 
-const boxTemplate = document.createElement("box-template");
-template.innerHTML = `
+const boxTemplate = document.createElement("template");
+boxTemplate.innerHTML = `
 	<div id="message">
 		<p>Waiting for server data.</p>
 	</div>
 `;
 
-const listTemplate = document.createElement("list-template");
-template.innerHTML = `
+const listTemplate = document.createElement("template");
+listTemplate.innerHTML = `
 	<div id="newtask">
 		<button type="button" disabled>New task</button>
 	</div>
