@@ -27,9 +27,6 @@ class TaskBox extends HTMLElement {
 
     constructor() {
         super();
-        /**
-         * Fill inn rest of the code
-         */
 		const copy = template.content.cloneNode(true);
 		this.appendChild(copy);
 		
