@@ -100,6 +100,87 @@ class TaskView extends HTMLElement {
             console.log(`Error fetching tasks: ${error.message}`);
         }
     }
+	
+	/**
+     * Helper method to send a new task to the server and update the UI.
+     * @param {string} baseUrl - The URL from data-serviceurl
+     * @param {Object} taskData - The new task object {title, status}
+     * @param {HTMLElement} taskbox - Reference to the TaskBox component
+     * @param {HTMLElement} tasklist - Reference to the TaskList component
+     */
+    async #postNewTask(baseUrl, taskData, taskbox, tasklist) {
+        try {
+            // Send POST request to add a task to the database
+            const response = await fetch(`${baseUrl}/task`, {
+                method: "POST",
+                // The service expects the data with the following content type
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8"
+                },
+                // Data for the new task must be sent as JSON with properties title and status
+                body: JSON.stringify(taskData)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                
+                // The view should be modified only if responseStatus is true
+                if (data.responseStatus) {
+                    // The new task will be added to the top of the list
+                    tasklist.showTask(data.task);
+                    
+                    // The modal box should close
+                    taskbox.close();
+                    
+                    // Update the "Found X tasks" counter
+                    this.updateMessage();
+                }
+            } else {
+                console.log(`Failed to add task. Status code: ${response.status}`);
+            }
+        } catch (error) {
+            console.log(`Error adding task: ${error.message}`);
+        }
+    }
+	
+	/**
+     * Helper method to send a PUT request to update a task's status.
+     * @param {string} baseUrl - The URL from data-serviceurl
+     * @param {number} id - The ID of the task to update
+     * @param {string} newStatus - The new status (e.g., "ACTIVE", "DONE")
+     * @param {HTMLElement} tasklist - Reference to the TaskList component
+     */
+    async #putTaskStatus(baseUrl, id, newStatus, tasklist) {
+        try {
+            // Send PUT request to update the specific task using its id
+            const response = await fetch(`${baseUrl}/task/${id}`, {
+                method: "PUT",
+                // The service expects the data to be sent with this exact content type
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8"
+                },
+                // Data for the new status must be sent as JSON with a property 'status'
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                
+                // The view should be modified only if responseStatus is true
+                if (data.responseStatus) {
+                    // Update the task in the TaskList view using its public API
+                    tasklist.updateTask({
+                        id: id,
+                        status: newStatus
+                    });
+                }
+            } else {
+                console.log(`Failed to update task. Status code: ${response.status}`);
+            }
+        } catch (error) {
+            console.log(`Error updating task status: ${error.message}`);
+        }
+    }
 
     connectedCallback() {
         const url = this.getAttribute("data-serviceurl");
@@ -118,13 +199,14 @@ class TaskView extends HTMLElement {
 
         // 2. Handle Add Task Callback
         taskbox.addNewtaskCallback(async (task) => {
-            // Part 2: POST to server
-            taskbox.close();
+			// Pass the data to our helper method to handle the Ajax POST
+            this.#postNewTask(url, task, taskbox, tasklist);
         });
 
         // 3. Handle Modify Status Callback
         tasklist.addChangestatusCallback(async (id, newStatus) => {
-            // Part 2: PUT to server
+            // Pass the ID and the newly selected status to our Ajax helper method
+            this.#putTaskStatus(url, id, newStatus, tasklist);
         });
 
         // 4. Handle Delete Task Callback
