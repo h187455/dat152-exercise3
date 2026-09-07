@@ -20,8 +20,8 @@ template.innerHTML = `
 `;
 
 /**
-  * TaskView
-  * Manage the whole view
+  * TaskBox
+  * Manage the modal box for adding a new task
   */
 class TaskBox extends HTMLElement {
 
