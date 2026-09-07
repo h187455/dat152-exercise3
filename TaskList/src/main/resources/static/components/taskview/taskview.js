@@ -181,6 +181,38 @@ class TaskView extends HTMLElement {
             console.log(`Error updating task status: ${error.message}`);
         }
     }
+	
+	/**
+     * Helper method to send a DELETE request to remove a task.
+     * @param {string} baseUrl - The URL from data-serviceurl
+     * @param {number} id - The ID of the task to delete
+     * @param {HTMLElement} tasklist - Reference to the TaskList component
+     */
+    async #deleteTask(baseUrl, id, tasklist) {
+        try {
+            // Send DELETE request to remove the task from the database
+            const response = await fetch(`${baseUrl}/task/${id}`, {
+                method: "DELETE"
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                
+                // The view should be modified only if responseStatus is true
+                if (data.responseStatus) {
+                    // Remove the task from the view using its numerical id
+                    tasklist.removeTask(id);
+                    
+                    // Update the "Found X tasks" counter since the list size changed
+                    this.updateMessage();
+                }
+            } else {
+                console.log(`Failed to delete task. Status code: ${response.status}`);
+            }
+        } catch (error) {
+            console.log(`Error deleting task: ${error.message}`);
+        }
+    }
 
     connectedCallback() {
         const url = this.getAttribute("data-serviceurl");
@@ -211,7 +243,8 @@ class TaskView extends HTMLElement {
 
         // 4. Handle Delete Task Callback
         tasklist.addDeletetaskCallback(async (id) => {
-            // Part 2: DELETE to server
+			// Pass the ID to our Ajax helper method to execute the DELETE request
+            this.#deleteTask(url, id, tasklist);
         });
     }
 }
