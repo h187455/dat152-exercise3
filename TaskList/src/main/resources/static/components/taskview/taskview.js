@@ -1,5 +1,5 @@
-import "./components/tasklist/tasklist.js";
-import "./components/taskbox/taskbox.js";
+import "../tasklist/tasklist.js";
+import "../taskbox/taskbox.js";
 
 const viewTemplate = document.createElement("template");
 viewTemplate.innerHTML = `
