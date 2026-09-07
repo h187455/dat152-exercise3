@@ -1,62 +1,66 @@
 import "../tasklist/tasklist.js";
 import "../taskbox/taskbox.js";
 
-const viewTemplate = document.createElement("template");
-viewTemplate.innerHTML = `
-    <link rel="stylesheet" type="text/css" href="${new URL('taskview.css',import.meta.url)}">
-	
-	
-	<h1>Tasks</h1>
-	
-	<!-- The task list -->
-	<GROUP8-TASKLIST></GROUP8-TASKLIST>
-	
-	<!-- The Modal -->
-	<GROUP8-TASKBOX></GROUP8-TASKBOX>
-`;
-
-const boxTemplate = document.createElement("template");
-boxTemplate.innerHTML = `
-	<div id="message">
-		<p>Waiting for server data.</p>
-	</div>
-`;
-
-const listTemplate = document.createElement("template");
-listTemplate.innerHTML = `
-	<div id="newtask">
-		<button type="button" disabled>New task</button>
-	</div>
+const template = document.createElement("template");
+template.innerHTML = `
+    <link rel="stylesheet" type="text/css" href="${new URL('taskview.css', import.meta.url)}">
+    <h1>Tasks</h1>
+    <div id="message"><p>Waiting for server data.</p></div>
+    <div id="newtask">
+        <button type="button" disabled>New task</button>
+    </div>
+    <!-- The task list -->
+    <group8-tasklist></group8-tasklist>
+    <!-- The Modal -->
+    <group8-taskbox></group8-taskbox>
 `;
 
 /**
-  * TaskView
-  * Manage the whole view
-  */
+ * TaskView
+ * Manage the whole view
+ */
 class TaskView extends HTMLElement {
 
     constructor() {
         super();
-        /**
-         * Fill inn rest of the code
-         */
-		const copy = viewTemplate.content.cloneNode(true);
-		this.appendChild(copy);
-		
+        const copy = template.content.cloneNode(true);
+        this.appendChild(copy);
     }
 
-    /**
-     * @public
-     * @param {Array} list with all possible task statuses
-     */
-	
-	/**
-	 * Add task at top in list of tasks in the view
-	 * @public
-	 * @param {Object} task - Object representing a task
-	 */
+    connectedCallback() {
+        const url = this.getAttribute("data-serviceurl");
+        const taskbox = this.querySelector("group8-taskbox");
+        const tasklist = this.querySelector("group8-tasklist");
+        const newTaskBtn = this.querySelector("#newtask button");
+        const messageDiv = this.querySelector("#message");
 
-	
-	
+        // Open modal when button is clicked
+        newTaskBtn.addEventListener("click", () => {
+            taskbox.show();
+        });
+
+        // Callback jab user modal se new task submit kare
+        taskbox.addNewtaskCallback(async (task) => {
+            try {
+                const response = await fetch(`${url}/task`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json; charset=utf-8" },
+                    body: JSON.stringify(task)
+                });
+                const result = await response.json();
+
+                if (result.responseStatus) {
+                    tasklist.showTask(result.task);
+                    taskbox.close();
+                    // Update task count message
+                }
+            } catch (err) {
+                console.error("Failed to add task:", err);
+            }
+        });
+
+        // Yahan server se allstatuses aur tasklist fetch karein
+    }
 }
+
 customElements.define('group8-taskview', TaskView);
