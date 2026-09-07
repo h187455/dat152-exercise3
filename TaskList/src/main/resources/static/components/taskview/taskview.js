@@ -1,7 +1,7 @@
-const template = document.createElement("template");
+const viewTemplate = document.createElement("view-template");
 template.innerHTML = `
     <link rel="stylesheet" type="text/css" href="${new URL('taskview.css',import.meta.url)}">
-
+	
 	<h1>Tasks</h1>
 	
 	<!-- The task list -->
@@ -11,14 +11,14 @@ template.innerHTML = `
 	<GROUP8-TASKBOX></GROUP8-TASKBOX>
 `;
 
-const template = document.createElement("template");
+const boxTemplate = document.createElement("box-template");
 template.innerHTML = `
 	<div id="message">
 		<p>Waiting for server data.</p>
 	</div>
 `;
 
-const template = document.createElement("template");
+const listTemplate = document.createElement("list-template");
 template.innerHTML = `
 	<div id="newtask">
 		<button type="button" disabled>New task</button>
@@ -36,7 +36,7 @@ class TaskView extends HTMLElement {
         /**
          * Fill inn rest of the code
          */
-		const copy = template.content.cloneNode(true);
+		const copy = viewTemplate.content.cloneNode(true);
 		this.appendChild(copy);
 		
     }

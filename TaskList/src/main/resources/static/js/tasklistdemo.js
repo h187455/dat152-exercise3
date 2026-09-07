@@ -6,7 +6,7 @@ class TaskDemo {
     #tasklist
 
     constructor() {
-        this.#tasklist = document.querySelector("groupx-tasklist");
+        this.#tasklist = document.querySelector("group8-tasklist");
 
         this.#tasklist.addChangestatusCallback(
             (id, newStatus) => {
