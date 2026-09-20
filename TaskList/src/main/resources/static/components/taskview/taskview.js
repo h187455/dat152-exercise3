@@ -85,7 +85,7 @@ class TaskView extends HTMLElement {
                 if (data.responseStatus) {
                     const tasklist = this.querySelector("group8-tasklist");
                     
-                    // Loop through the array of tasks and add them to the view[cite: 3, 4]
+                    // Loop through the array of tasks and add them to the view
                     for (let task of data.tasks) {
                         tasklist.showTask(task);
                     }
@@ -214,15 +214,15 @@ class TaskView extends HTMLElement {
         }
     }
 
-    connectedCallback() {
+    async connectedCallback() {
         const url = this.getAttribute("data-serviceurl");
         const taskbox = this.querySelector("group8-taskbox");
         const tasklist = this.querySelector("group8-tasklist");
         const newTaskBtn = this.querySelector("#newtask button");
 		
 		// Fetch statues and tasklist
-		this.#loadStatuses(url);
-		this.#loadTasks(url);
+		await this.#loadStatuses(url);
+		await this.#loadTasks(url);
 
         // 1. Open Modal
         newTaskBtn.addEventListener("click", () => {

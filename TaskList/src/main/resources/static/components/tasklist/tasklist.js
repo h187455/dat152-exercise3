@@ -32,9 +32,6 @@ class TaskList extends HTMLElement {
 
     constructor() {
         super();
-        /**
-         * Fill inn rest of the code
-         */
 		const copy = template.content.cloneNode(true);
 		this.appendChild(copy);
 		
@@ -44,7 +41,6 @@ class TaskList extends HTMLElement {
      * @public
      * @param {Array} list with all possible task statuses
      */
-	
     setStatuseslist(allstatuses) {
 		this.statuses = allstatuses;
 		const select = taskrow.content.querySelector("select");
@@ -87,9 +83,6 @@ class TaskList extends HTMLElement {
      * @param {Object} task - Object representing a task
      */
     showTask(task) {
-        /**
-         * Fill inn the code
-         */
 		const container = this.querySelector("#tasklist");
 		let table = container.querySelector("table");
 		
@@ -142,9 +135,6 @@ class TaskList extends HTMLElement {
      * @param {Object} task - Object with attributes {'id':taskId,'status':newStatus}
      */
     updateTask(task) {
-        /**
-         * Fill inn the code
-         */
 		const row = this.querySelector(`tr[data-id="${task.id}"]`);
 		
 		if (row) {
@@ -158,9 +148,6 @@ class TaskList extends HTMLElement {
      * @param {Integer} task - ID of task to remove
      */
     removeTask(id) {
-        /**
-         * Fill inn the code
-         */
 		const row = this.querySelector(`tr[data-id="${id}"]`);
 		if (row) {
 			row.remove();
@@ -176,9 +163,6 @@ class TaskList extends HTMLElement {
      * @return {Number} - Number of tasks on display in view
      */
     getNumtasks() {
-        /**
-         * Fill inn the code
-         */
 		const rows = this.querySelectorAll("tbody tr");
 		return rows.length;
     }
