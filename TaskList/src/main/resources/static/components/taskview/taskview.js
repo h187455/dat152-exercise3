@@ -224,26 +224,23 @@ class TaskView extends HTMLElement {
 		await this.#loadStatuses(url);
 		await this.#loadTasks(url);
 
-        // 1. Open Modal
+        // Open Modal
         newTaskBtn.addEventListener("click", () => {
             taskbox.show();
         });
 
-        // 2. Handle Add Task Callback
+        // Handle Add Task Callback
         taskbox.addNewtaskCallback(async (task) => {
-			// Pass the data to our helper method to handle the Ajax POST
             this.#postNewTask(url, task, taskbox, tasklist);
         });
 
-        // 3. Handle Modify Status Callback
+        // Handle Modify Status Callback
         tasklist.addChangestatusCallback(async (id, newStatus) => {
-            // Pass the ID and the newly selected status to our Ajax helper method
             this.#putTaskStatus(url, id, newStatus, tasklist);
         });
 
-        // 4. Handle Delete Task Callback
+        // Handle Delete Task Callback
         tasklist.addDeletetaskCallback(async (id) => {
-			// Pass the ID to our Ajax helper method to execute the DELETE request
             this.#deleteTask(url, id, tasklist);
         });
     }
