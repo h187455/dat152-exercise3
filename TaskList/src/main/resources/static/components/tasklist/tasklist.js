@@ -29,6 +29,8 @@ taskrow.innerHTML = `
   * Manage view with list of tasks
   */
 class TaskList extends HTMLElement {
+	
+	 #statuses;
 
     constructor() {
         super();
@@ -42,7 +44,7 @@ class TaskList extends HTMLElement {
      * @param {Array} list with all possible task statuses
      */
     setStatuseslist(allstatuses) {
-		this.statuses = allstatuses;
+		this.#statuses = allstatuses;
 		const select = taskrow.content.querySelector("select");
 		const optionT = select.querySelector("option");
 		
@@ -163,8 +165,11 @@ class TaskList extends HTMLElement {
      * @return {Number} - Number of tasks on display in view
      */
     getNumtasks() {
-		const rows = this.querySelectorAll("tbody tr");
-		return rows.length;
+		const table = this.querySelector("table");
+		if (table !== null) {
+		    return table.tBodies[0].rows.length;
+		}
+		return 0;
     }
 }
 customElements.define('group8-tasklist', TaskList);

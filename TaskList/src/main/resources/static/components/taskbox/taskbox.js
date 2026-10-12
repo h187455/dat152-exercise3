@@ -4,7 +4,7 @@ template.innerHTML = `
 
 	<dialog>
 	   <!-- Modal content -->
-	   <span class="close-btn" style="cursor: pointer;">&times;</span>
+	   <span class="close-btn">&times;</span>
 	   <div>
 	       <div>Title:</div>
 	       <div>
@@ -24,6 +24,8 @@ template.innerHTML = `
   * Manage the modal box for adding a new task
   */
 class TaskBox extends HTMLElement {
+	
+	#dialog; #titleInput; #statusSelect; #addBtn; #closeBtn; #callbacks;
 
     constructor() {
         super();
@@ -31,26 +33,26 @@ class TaskBox extends HTMLElement {
 		this.appendChild(copy);
 		
 		// Store references to internal DOM elements
-		this.dialog = this.querySelector("dialog");
-		this.titleInput = this.querySelector("input[type='text']");
-		this.statusSelect = this.querySelector("select");
-		this.addBtn = this.querySelector("button[type='submit']");
-		this.closeBtn = this.querySelector("span");
+		this.#dialog = this.querySelector("dialog");
+		this.#titleInput = this.querySelector("input[type='text']");
+		this.#statusSelect = this.querySelector("select");
+		this.#addBtn = this.querySelector("button[type='submit']");
+		this.#closeBtn = this.querySelector("span");
 		
 		// Array to hold registered callbacks
-		this.callbacks = [];
+		this.#callbacks = [];
 		
 		// Close when clicking the 'x'
-		this.closeBtn.addEventListener("click", () => {
+		this.#closeBtn.addEventListener("click", () => {
 			this.close();
 		});
 		
 		// Submit new task when clicking 'Add task'
-		this.addBtn.addEventListener("click", (event) => {
+		this.#addBtn.addEventListener("click", (event) => {
 			event.preventDefault();
 
-			const title = this.titleInput.value.trim();
-			const status = this.statusSelect.value;
+			const title = this.#titleInput.value.trim();
+			const status = this.#statusSelect.value;
 
 			if (title.length === 0) {
 				return;
@@ -62,7 +64,7 @@ class TaskBox extends HTMLElement {
 			};
 
 			// Run all registered callbacks with newTask
-			this.callbacks.forEach((callback) => callback(newTask));
+			this.#callbacks.forEach((callback) => callback(newTask));
 		});	
     }
 
@@ -71,10 +73,11 @@ class TaskBox extends HTMLElement {
 	 * @public
 	*/
 	show() {
-	   this.titleInput.value = "";
-	   if (this.dialog && typeof this.dialog.showModal === "function") {
-	    	this.dialog.showModal();
-	   }
+		this.#titleInput.value = "";
+		this.#statusSelect.selectedIndex = 0;
+		if (this.#dialog !== null && typeof this.#dialog.showModal === "function") {	
+	    	this.#dialog.showModal();
+		}
 	}
 	
 	/**
@@ -82,8 +85,8 @@ class TaskBox extends HTMLElement {
 	 * @public
 	*/
 	close() {
-	   if (this.dialog && this.dialog.open) {
-           this.dialog.close();
+	   if (this.#dialog !== null && this.#dialog.open === true) {
+           this.#dialog.close();
 	   }
 	}
 	
@@ -94,7 +97,7 @@ class TaskBox extends HTMLElement {
 	*/
 	setStatuseslist(list) {
 		// Clear previous options using DOM manipulation (no unsafe innerHTML)
-	    while (this.statusSelect.firstChild) {
+	    while (this.statusSelect.firstChild !== null) {
 	       this.statusSelect.removeChild(this.statusSelect.firstChild);
 		}
 
