@@ -30,7 +30,7 @@ taskrow.innerHTML = `
   */
 class TaskList extends HTMLElement {
 	
-	 #statuses;
+	 #statuses; #changeStatusCallback; #deleteTaskCallback;
 
     constructor() {
         super();
@@ -45,6 +45,8 @@ class TaskList extends HTMLElement {
      */
     setStatuseslist(allstatuses) {
 		this.#statuses = allstatuses;
+		
+	/**
 		const select = taskrow.content.querySelector("select");
 		const optionT = select.querySelector("option");
 		
@@ -59,6 +61,7 @@ class TaskList extends HTMLElement {
 			option.selected = false;
 			select.appendChild(option);
 		}
+	*/
     }
 
     /**
@@ -67,7 +70,7 @@ class TaskList extends HTMLElement {
      * @param {function} callback
      */
     addChangestatusCallback(callback) {
-		this.changeStatusCallback = callback;
+		this.#changeStatusCallback = callback;
     }
 
     /**
@@ -76,7 +79,7 @@ class TaskList extends HTMLElement {
      * @param {function} callback
      */
     addDeletetaskCallback(callback) {
-		this.deleteTaskCallback = callback;
+		this.#deleteTaskCallback = callback;
     }
 
     /**
@@ -93,11 +96,12 @@ class TaskList extends HTMLElement {
 			container.appendChild(tableCopy);
 			table = container.querySelector("table");
 		}
-		const row = taskrow.content.cloneNode(true);
-		const cells = row.querySelectorAll("td");
-		
-		cells[0].textContent = task.title;
-		cells[1].textContent = task.status;
+		const fragment = taskrow.content.cloneNode(true);
+		const tr = fragment.firstElementChild;
+		tr.dataset.id = task.id;
+				
+		tr.cells[0].textContent = task.title;
+		tr.cells[1].textContent = task.status;
 		
 		const selectedRow = row.querySelector("tr");
 		selectedRow.dataset.id = task.id;
@@ -111,14 +115,14 @@ class TaskList extends HTMLElement {
 			const confirmed = window.confirm(`Change status of "${task.title}" to ${newStatus}?`);
 			
 			
-			if (confirmed) {
-				this.changeStatusCallback(task.id, newStatus);
+			if (confirmed === true) {
+				this.#changeStatusCallback(task.id, newStatus);
 			}
 			
 			select.value = "0";
 		});
 		
-		const tbody = table.querySelector("tbody");
+		const tbody = table.tBodies[0];
 		tbody.prepend(row);
 		
 		button.addEventListener("click", () => {
@@ -126,8 +130,8 @@ class TaskList extends HTMLElement {
 		        `Delete "${task.title}"?`
 		    );
 
-		    if (confirmed) {
-		        this.deleteTaskCallback(task.id);
+		    if (confirmed === true) {
+		        this.#deleteTaskCallback(task.id);
 		    }
 		});
     }
