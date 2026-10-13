@@ -30,7 +30,7 @@ taskrow.innerHTML = `
   */
 class TaskList extends HTMLElement {
 	
-	 #statuses; #changeStatusCallback; #deleteTaskCallback;
+	 #statuses = []; #changeStatusCallback; #deleteTaskCallback;
 
     constructor() {
         super();
@@ -45,23 +45,6 @@ class TaskList extends HTMLElement {
      */
     setStatuseslist(allstatuses) {
 		this.#statuses = allstatuses;
-		
-	/**
-		const select = taskrow.content.querySelector("select");
-		const optionT = select.querySelector("option");
-		
-		if (select.children.length > 1) {
-            return; 
-        }
-		
-		for (const status of allstatuses) {
-			const option = optionT.cloneNode(true);
-			option.value = status;
-			option.textContent = status;
-			option.selected = false;
-			select.appendChild(option);
-		}
-	*/
     }
 
     /**
@@ -87,82 +70,98 @@ class TaskList extends HTMLElement {
      * @public
      * @param {Object} task - Object representing a task
      */
-    showTask(task) {
-		const container = this.querySelector("#tasklist");
-		let table = container.querySelector("table");
-		
-		if (table === null) {
-			const tableCopy = tasktable.content.cloneNode(true);
-			container.appendChild(tableCopy);
-			table = container.querySelector("table");
-		}
-		const fragment = taskrow.content.cloneNode(true);
-		const tr = fragment.firstElementChild;
-		tr.dataset.id = task.id;
-				
-		tr.cells[0].textContent = task.title;
-		tr.cells[1].textContent = task.status;
-		
-		const selectedRow = row.querySelector("tr");
-		selectedRow.dataset.id = task.id;
-		
-		const select = row.querySelector("select");
-		select.value = "0";
-		const button = row.querySelector("button");
-		
-		select.addEventListener("change", ()=> {
-			const newStatus = select.value;
-			const confirmed = window.confirm(`Change status of "${task.title}" to ${newStatus}?`);
-			
-			
-			if (confirmed === true) {
-				this.#changeStatusCallback(task.id, newStatus);
-			}
-			
-			select.value = "0";
-		});
-		
-		const tbody = table.tBodies[0];
-		tbody.prepend(row);
-		
-		button.addEventListener("click", () => {
-		    const confirmed = window.confirm(
-		        `Delete "${task.title}"?`
-		    );
+	showTask(task) {
+	    const container = this.querySelector("#tasklist");
+	    let table = container.querySelector("table");
 
-		    if (confirmed === true) {
-		        this.#deleteTaskCallback(task.id);
-		    }
-		});
-    }
+	    if (table === null) {
+	        const tableCopy = tasktable.content.cloneNode(true);
+	        container.appendChild(tableCopy);
+	        table = container.querySelector("table");
+	    }
+
+	    const fragment = taskrow.content.cloneNode(true);
+	    const tr = fragment.firstElementChild;
+
+	    tr.dataset.id = task.id;
+	    tr.cells[0].textContent = task.title;
+	    tr.cells[1].textContent = task.status;
+
+	    const select = tr.querySelector("select");
+
+	    // Populate status options from the stored list
+	    for (const status of this.#statuses) {
+	        const option = document.createElement("option");
+	        option.value = status;
+	        option.textContent = status;
+	        select.appendChild(option);
+	    }
+	    select.value = "0";
+
+	    select.addEventListener("change", () => {
+	        const newStatus = select.value;
+	        if (newStatus === tr.cells[1].textContent) {
+	            select.value = "0";
+	            return;
+	        }
+	        const confirmed = window.confirm(
+	            `Change status of "${task.title}" to ${newStatus}?`
+	        );
+	        if (confirmed === true && typeof this.#changeStatusCallback === "function") {
+	            this.#changeStatusCallback(task.id, newStatus);
+	        }
+	        select.value = "0";
+	    });
+
+	    const button = tr.querySelector("button");
+	    button.addEventListener("click", () => {
+	        const confirmed = window.confirm(`Delete "${task.title}"?`);
+	        if (confirmed === true && typeof this.#deleteTaskCallback === "function") {
+	            this.#deleteTaskCallback(task.id);
+	        }
+	    });
+
+	    table.tBodies[0].prepend(fragment);
+	}
+
 
     /**
      * Update the status of a task in the view
      * @param {Object} task - Object with attributes {'id':taskId,'status':newStatus}
      */
-    updateTask(task) {
-		const row = this.querySelector(`tr[data-id="${task.id}"]`);
-		
-		if (row) {
-			const cells = row.querySelectorAll("td");
-			cells[1].textContent = task.status;
-		}
-    }
+	updateTask(task) {
+	    const table = this.querySelector("table");
+	    if (table === null) {
+	        return;
+	    }
+	    for (const row of table.tBodies[0].rows) {
+	        if (row.dataset.id === String(task.id)) {
+	            row.cells[1].textContent = task.status;
+	            return;
+	        }
+	    }
+	}
+
 
     /**
      * Remove a task from the view
      * @param {Integer} task - ID of task to remove
      */
-    removeTask(id) {
-		const row = this.querySelector(`tr[data-id="${id}"]`);
-		if (row) {
-			row.remove();
-		}
-		if (this.getNumtasks() === 0) {
-			const container = this.querySelector("#tasklist");
-			container.innerHTML = "";
-		}
-    }
+	removeTask(id) {
+	    const table = this.querySelector("table");
+	    if (table !== null) {
+	        for (const row of table.tBodies[0].rows) {
+	            if (row.dataset.id === String(id)) {
+	                row.remove();
+	                break;
+	            }
+	        }
+	    }
+	    if (this.getNumtasks() === 0) {
+	        const container = this.querySelector("#tasklist");
+	        container.replaceChildren();
+	    }
+	}
 
     /**
      * @public
