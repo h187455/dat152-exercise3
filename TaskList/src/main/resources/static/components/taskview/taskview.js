@@ -15,91 +15,96 @@ template.innerHTML = `
     <group8-taskbox></group8-taskbox>
 `;
 
+
 class TaskView extends HTMLElement {
-    constructor() {
-        super();
-        const copy = template.content.cloneNode(true);
-        this.appendChild(copy);
-    }
+	#taskbox;
+	#tasklist;
+	#newTaskBtn;
+	#url = null;
+	
+	constructor() {
+	    super();
+	    const copy = template.content.cloneNode(true);
+	    this.appendChild(copy);
+
+	    this.#taskbox = this.querySelector("group8-taskbox");
+	    this.#tasklist = this.querySelector("group8-tasklist");
+	    this.#newTaskBtn = this.querySelector("#newtask button");
+
+	    this.#newTaskBtn.addEventListener("click", () => {
+	        this.#taskbox.show();
+	    });
+
+	    this.#taskbox.addNewtaskCallback(async (task) => {
+	        await this.#postNewTask(task);
+	    });
+
+	    this.#tasklist.addChangestatusCallback(async (id, newStatus) => {
+	        await this.#putTaskStatus(id, newStatus);
+	    });
+
+	    this.#tasklist.addDeletetaskCallback(async (id) => {
+	        await this.#deleteTask(id);
+	    });
+	}
 
     // Helper to sync message and button
-    updateMessage() {
-        const messageP = this.querySelector("#message p");
-        const newTaskBtn = this.querySelector("#newtask button");
-        const tasklist = this.querySelector("group8-tasklist");
-
-        newTaskBtn.disabled = false;
-        const count = tasklist.getNumtasks();
-
-        if (count > 0) {
-            messageP.textContent = `Found ${count} tasks.`;
-        } else {
-            messageP.textContent = "No tasks were found.";
-        }
-    }
-	
+	#updateMessage() {
+	    const messageP = this.querySelector("#message p");
+	    this.#newTaskBtn.disabled = false;
+	    const count = this.#tasklist.getNumtasks();
+	    if (count > 0) {
+	        messageP.textContent = `Found ${count} tasks.`;
+	    } else {
+	        messageP.textContent = "No tasks were found.";
+	    }
+	}	
 	/**
 	 * Helper method to fetch statuses and distribute them.
 	 * @param {string} baseUrl - The URL from data-serviceurl
 	*/
-	async #loadStatuses(baseUrl) {
-        try {
-            // Send GET request to retrieve all possible task states
-            const response = await fetch(`${baseUrl}/allstatuses`); 
-            
-            // Property ok is a boolean that indicates if response was successful
-            if (response.ok) { 
-                const data = await response.json(); 
-                
-                // The responseStatus property has value true if statuses were found
-                if (data.responseStatus) {
-                    const taskbox = this.querySelector("group8-taskbox");
-                    const tasklist = this.querySelector("group8-tasklist");
-                    
-                    // Pass the fetched statuses to both components using their public APIs
-                    taskbox.setStatuseslist(data.allstatuses);
-                    tasklist.setStatuseslist(data.allstatuses);
-                }
-            } else {
-                console.log(`Status code: ${response.status}`);
-            }
-        } catch (e) {
-            console.log(`Got error ${e.message}.`);
-        }
-    }
+	async #loadStatuses() {
+	    try {
+	        const response = await fetch(`${this.#url}/allstatuses`);
+	        if (response.ok === true) {
+	            const data = await response.json();
+	            if (data.responseStatus === true) {
+	                this.#taskbox.setStatuseslist(data.allstatuses);
+	                this.#tasklist.setStatuseslist(data.allstatuses);
+	            }
+	        } else {
+	            console.log(`Status code: ${response.status}`);
+	        }
+	    } catch (e) {
+	        console.log(`Got error ${e.message}.`);
+	    }
+	}
+
 	
 	/**
      * Helper method to fetch the list of existing tasks from the server.
      * Keeps the connectedCallback clean.
      * @param {string} baseUrl - The URL from data-serviceurl
      */
-    async #loadTasks(baseUrl) {
-        try {
-            // Send GET request to retrieve all existing tasks
-            const response = await fetch(`${baseUrl}/tasklist`); 
-            
-            if (response.ok) {
-                const data = await response.json();
-                
-                // The responseStatus property has value true if tasks were found
-                if (data.responseStatus) {
-                    const tasklist = this.querySelector("group8-tasklist");
-                    
-                    // Loop through the array of tasks and add them to the view
-                    for (let task of data.tasks) {
-                        tasklist.showTask(task);
-                    }
-                    
-                    // Update the "Found X tasks" message and enable the "New task" button
-                    this.updateMessage();
-                }
-            } else {
-                console.log(`Failed to load tasks. Status code: ${response.status}`);
-            }
-        } catch (error) {
-            console.log(`Error fetching tasks: ${error.message}`);
-        }
-    }
+	async #loadTasks() {
+	    try {
+	        const response = await fetch(`${this.#url}/tasklist`);
+	        if (response.ok === true) {
+	            const data = await response.json();
+	            if (data.responseStatus === true) {
+	                for (const task of data.tasks) {
+	                    this.#tasklist.showTask(task);
+	                }
+	                this.#updateMessage();
+	            }
+	        } else {
+	            console.log(`Failed to load tasks. Status code: ${response.status}`);
+	        }
+	    } catch (error) {
+	        console.log(`Error fetching tasks: ${error.message}`);
+	    }
+	}
+
 	
 	/**
      * Helper method to send a new task to the server and update the UI.
@@ -108,40 +113,28 @@ class TaskView extends HTMLElement {
      * @param {HTMLElement} taskbox - Reference to the TaskBox component
      * @param {HTMLElement} tasklist - Reference to the TaskList component
      */
-    async #postNewTask(baseUrl, taskData, taskbox, tasklist) {
-        try {
-            // Send POST request to add a task to the database
-            const response = await fetch(`${baseUrl}/task`, {
-                method: "POST",
-                // The service expects the data with the following content type
-                headers: {
-                    "Content-Type": "application/json; charset=utf-8"
-                },
-                // Data for the new task must be sent as JSON with properties title and status
-                body: JSON.stringify(taskData)
-            });
+	async #postNewTask(taskData) {
+	    try {
+	        const response = await fetch(`${this.#url}/task`, {
+	            method: "POST",
+	            headers: { "Content-Type": "application/json; charset=utf-8" },
+	            body: JSON.stringify(taskData)
+	        });
+	        if (response.ok === true) {
+	            const data = await response.json();
+	            if (data.responseStatus === true) {
+	                this.#tasklist.showTask(data.task);
+	                this.#taskbox.close();
+	                this.#updateMessage();
+	            }
+	        } else {
+	            console.log(`Failed to add task. Status code: ${response.status}`);
+	        }
+	    } catch (error) {
+	        console.log(`Error adding task: ${error.message}`);
+	    }
+	}
 
-            if (response.ok) {
-                const data = await response.json();
-                
-                // The view should be modified only if responseStatus is true
-                if (data.responseStatus) {
-                    // The new task will be added to the top of the list
-                    tasklist.showTask(data.task);
-                    
-                    // The modal box should close
-                    taskbox.close();
-                    
-                    // Update the "Found X tasks" counter
-                    this.updateMessage();
-                }
-            } else {
-                console.log(`Failed to add task. Status code: ${response.status}`);
-            }
-        } catch (error) {
-            console.log(`Error adding task: ${error.message}`);
-        }
-    }
 	
 	/**
      * Helper method to send a PUT request to update a task's status.
@@ -150,37 +143,26 @@ class TaskView extends HTMLElement {
      * @param {string} newStatus - The new status (e.g., "ACTIVE", "DONE")
      * @param {HTMLElement} tasklist - Reference to the TaskList component
      */
-    async #putTaskStatus(baseUrl, id, newStatus, tasklist) {
-        try {
-            // Send PUT request to update the specific task using its id
-            const response = await fetch(`${baseUrl}/task/${id}`, {
-                method: "PUT",
-                // The service expects the data to be sent with this exact content type
-                headers: {
-                    "Content-Type": "application/json; charset=utf-8"
-                },
-                // Data for the new status must be sent as JSON with a property 'status'
-                body: JSON.stringify({ status: newStatus })
-            });
+	async #putTaskStatus(id, newStatus) {
+	    try {
+	        const response = await fetch(`${this.#url}/task/${id}`, {
+	            method: "PUT",
+	            headers: { "Content-Type": "application/json; charset=utf-8" },
+	            body: JSON.stringify({ status: newStatus })
+	        });
+	        if (response.ok === true) {
+	            const data = await response.json();
+	            if (data.responseStatus === true) {
+	                this.#tasklist.updateTask({ id: id, status: newStatus });
+	            }
+	        } else {
+	            console.log(`Failed to update task. Status code: ${response.status}`);
+	        }
+	    } catch (error) {
+	        console.log(`Error updating task status: ${error.message}`);
+	    }
+	}
 
-            if (response.ok) {
-                const data = await response.json();
-                
-                // The view should be modified only if responseStatus is true
-                if (data.responseStatus) {
-                    // Update the task in the TaskList view using its public API
-                    tasklist.updateTask({
-                        id: id,
-                        status: newStatus
-                    });
-                }
-            } else {
-                console.log(`Failed to update task. Status code: ${response.status}`);
-            }
-        } catch (error) {
-            console.log(`Error updating task status: ${error.message}`);
-        }
-    }
 	
 	/**
      * Helper method to send a DELETE request to remove a task.
@@ -188,62 +170,39 @@ class TaskView extends HTMLElement {
      * @param {number} id - The ID of the task to delete
      * @param {HTMLElement} tasklist - Reference to the TaskList component
      */
-    async #deleteTask(baseUrl, id, tasklist) {
-        try {
-            // Send DELETE request to remove the task from the database
-            const response = await fetch(`${baseUrl}/task/${id}`, {
-                method: "DELETE"
-            });
+	async #deleteTask(id) {
+	    try {
+	        const response = await fetch(`${this.#url}/task/${id}`, {
+	            method: "DELETE"
+	        });
+	        if (response.ok === true) {
+	            const data = await response.json();
+	            if (data.responseStatus === true) {
+	                this.#tasklist.removeTask(id);
+	                this.#updateMessage();
+	            }
+	        } else {
+	            console.log(`Failed to delete task. Status code: ${response.status}`);
+	        }
+	    } catch (error) {
+	        console.log(`Error deleting task: ${error.message}`);
+	    }
+	}
 
-            if (response.ok) {
-                const data = await response.json();
-                
-                // The view should be modified only if responseStatus is true
-                if (data.responseStatus) {
-                    // Remove the task from the view using its numerical id
-                    tasklist.removeTask(id);
-                    
-                    // Update the "Found X tasks" counter since the list size changed
-                    this.updateMessage();
-                }
-            } else {
-                console.log(`Failed to delete task. Status code: ${response.status}`);
-            }
-        } catch (error) {
-            console.log(`Error deleting task: ${error.message}`);
-        }
-    }
+	async connectedCallback() {
+	    if (this.#url !== null) {
+	        return;
+	    }
+	    this.#url = this.getAttribute("data-serviceurl");
+	    if (this.#url === null) {
+	        console.error("group8-taskview: missing data-serviceurl");
+	        return;
+	    }
+	    await this.#loadStatuses();
+	    await this.#loadTasks();
+	}
 
-    async connectedCallback() {
-        const url = this.getAttribute("data-serviceurl");
-        const taskbox = this.querySelector("group8-taskbox");
-        const tasklist = this.querySelector("group8-tasklist");
-        const newTaskBtn = this.querySelector("#newtask button");
-		
-		// Fetch statues and tasklist
-		await this.#loadStatuses(url);
-		await this.#loadTasks(url);
 
-        // Open Modal
-        newTaskBtn.addEventListener("click", () => {
-            taskbox.show();
-        });
-
-        // Handle Add Task Callback
-        taskbox.addNewtaskCallback(async (task) => {
-            this.#postNewTask(url, task, taskbox, tasklist);
-        });
-
-        // Handle Modify Status Callback
-        tasklist.addChangestatusCallback(async (id, newStatus) => {
-            this.#putTaskStatus(url, id, newStatus, tasklist);
-        });
-
-        // Handle Delete Task Callback
-        tasklist.addDeletetaskCallback(async (id) => {
-            this.#deleteTask(url, id, tasklist);
-        });
-    }
 }
 
 customElements.define('group8-taskview', TaskView);
