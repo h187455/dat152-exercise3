@@ -30,7 +30,10 @@ taskrow.innerHTML = `
   */
 class TaskList extends HTMLElement {
 	
-	#statuses = []; #shadow; #changeStatusCallback; #deleteTaskCallback;
+	#statuses = []; 
+	#shadow; 
+	#changeStatusCallback; 
+	#deleteTaskCallback;
 
     constructor() {
         super();
@@ -132,9 +135,8 @@ class TaskList extends HTMLElement {
 	updateTask(task) {
 		const row = this.#shadow.querySelector(`tr[data-id="${task.id}"]`);
         
-        if (row) {
-            const cells = row.querySelectorAll("td");
-            cells[1].textContent = task.status;
+        if (row !== null) {
+            row.cells[1].textContent = task.status;
         }
 	}
 
@@ -145,12 +147,12 @@ class TaskList extends HTMLElement {
      */
 	removeTask(id) {
         const row = this.#shadow.querySelector(`tr[data-id="${id}"]`);
-        if (row) {
+        if (row !== null) {
             row.remove();
         }
         if (this.getNumtasks() === 0) {
             const container = this.#shadow.getElementById("tasklist");
-            container.textContent = "";
+			container.replaceChildren();
         }
 	}
 
