@@ -30,13 +30,13 @@ taskrow.innerHTML = `
   */
 class TaskList extends HTMLElement {
 	
-	 #statuses = []; #changeStatusCallback; #deleteTaskCallback;
+	#statuses = []; #shadow; #changeStatusCallback; #deleteTaskCallback;
 
     constructor() {
         super();
+		this.#shadow = this.attachShadow({ mode: 'closed' });
 		const copy = template.content.cloneNode(true);
-		this.appendChild(copy);
-		
+		this.#shadow.appendChild(copy);
     }
 
     /**
@@ -71,7 +71,7 @@ class TaskList extends HTMLElement {
      * @param {Object} task - Object representing a task
      */
 	showTask(task) {
-	    const container = this.querySelector("#tasklist");
+	    const container = this.#shadow.getElementById("tasklist");
 	    let table = container.querySelector("table");
 
 	    if (table === null) {
@@ -130,16 +130,12 @@ class TaskList extends HTMLElement {
      * @param {Object} task - Object with attributes {'id':taskId,'status':newStatus}
      */
 	updateTask(task) {
-	    const table = this.querySelector("table");
-	    if (table === null) {
-	        return;
-	    }
-	    for (const row of table.tBodies[0].rows) {
-	        if (row.dataset.id === String(task.id)) {
-	            row.cells[1].textContent = task.status;
-	            return;
-	        }
-	    }
+		const row = this.#shadow.querySelector(`tr[data-id="${task.id}"]`);
+        
+        if (row) {
+            const cells = row.querySelectorAll("td");
+            cells[1].textContent = task.status;
+        }
 	}
 
 
@@ -148,19 +144,14 @@ class TaskList extends HTMLElement {
      * @param {Integer} task - ID of task to remove
      */
 	removeTask(id) {
-	    const table = this.querySelector("table");
-	    if (table !== null) {
-	        for (const row of table.tBodies[0].rows) {
-	            if (row.dataset.id === String(id)) {
-	                row.remove();
-	                break;
-	            }
-	        }
-	    }
-	    if (this.getNumtasks() === 0) {
-	        const container = this.querySelector("#tasklist");
-	        container.replaceChildren();
-	    }
+        const row = this.#shadow.querySelector(`tr[data-id="${id}"]`);
+        if (row) {
+            row.remove();
+        }
+        if (this.getNumtasks() === 0) {
+            const container = this.#shadow.getElementById("tasklist");
+            container.textContent = "";
+        }
 	}
 
     /**
@@ -168,7 +159,7 @@ class TaskList extends HTMLElement {
      * @return {Number} - Number of tasks on display in view
      */
     getNumtasks() {
-		const table = this.querySelector("table");
+		const table = this.#shadow.querySelector("table");
 		if (table !== null) {
 		    return table.tBodies[0].rows.length;
 		}
