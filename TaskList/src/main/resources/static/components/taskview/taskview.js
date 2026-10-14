@@ -69,7 +69,6 @@ class TaskView extends HTMLElement {
 	}	
 	/**
 	 * Helper method to fetch statuses and distribute them.
-	 * @param {string} baseUrl - The URL from data-serviceurl
 	*/
 	async #loadStatuses() {
 	    try {
@@ -98,7 +97,6 @@ class TaskView extends HTMLElement {
 	/**
      * Helper method to fetch the list of existing tasks from the server.
      * Keeps the connectedCallback clean.
-     * @param {string} baseUrl - The URL from data-serviceurl
      */
 	async #loadTasks() {
 	    try {
@@ -172,10 +170,8 @@ class TaskView extends HTMLElement {
 	
 	/**
      * Helper method to send a PUT request to update a task's status.
-     * @param {string} baseUrl - The URL from data-serviceurl
      * @param {number} id - The ID of the task to update
      * @param {string} newStatus - The new status (e.g., "ACTIVE", "DONE")
-     * @param {HTMLElement} tasklist - Reference to the TaskList component
      */
 	async #putTaskStatus(id, newStatus) {
 	    try {
@@ -208,9 +204,7 @@ class TaskView extends HTMLElement {
 	
 	/**
      * Helper method to send a DELETE request to remove a task.
-     * @param {string} baseUrl - The URL from data-serviceurl
      * @param {number} id - The ID of the task to delete
-     * @param {HTMLElement} tasklist - Reference to the TaskList component
      */
 	async #deleteTask(id) {
 	    try {

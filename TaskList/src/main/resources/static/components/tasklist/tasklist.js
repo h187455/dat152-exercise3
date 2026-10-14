@@ -143,7 +143,7 @@ class TaskList extends HTMLElement {
 
     /**
      * Remove a task from the view
-     * @param {Integer} task - ID of task to remove
+	 * @param { number } id - ID of task to remove
      */
 	removeTask(id) {
         const row = this.#shadow.querySelector(`tr[data-id="${id}"]`);
