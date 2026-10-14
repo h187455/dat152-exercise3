@@ -25,7 +25,13 @@ template.innerHTML = `
   */
 class TaskBox extends HTMLElement {
 	
-	#dialog; #titleInput; #statusSelect; #addBtn; #closeBtn; #callbacks;
+	#dialog; 
+	#titleInput; 
+	#statusSelect; 
+	#addBtn; 
+	#closeBtn; 
+	#callbacks = [];
+	#statuses = [];
 
     constructor() {
         super();
@@ -38,9 +44,6 @@ class TaskBox extends HTMLElement {
 		this.#statusSelect = this.querySelector("select");
 		this.#addBtn = this.querySelector("button[type='submit']");
 		this.#closeBtn = this.querySelector("span");
-		
-		// Array to hold registered callbacks
-		this.#callbacks = [];
 		
 		// Close when clicking the 'x'
 		this.#closeBtn.addEventListener("click", () => {
@@ -72,13 +75,24 @@ class TaskBox extends HTMLElement {
 	 * Opens (shows) the modal box in the browser window
 	 * @public
 	*/
+	
 	show() {
-		this.#titleInput.value = "";
-		this.#statusSelect.selectedIndex = 0;
-		if (this.#dialog !== null && typeof this.#dialog.showModal === "function") {	
-	    	this.#dialog.showModal();
-		}
+	    this.#titleInput.value = "";
+
+	    this.#statusSelect.replaceChildren();
+	    for (const status of this.#statuses) {
+	        const option = document.createElement("option");
+	        option.value = status;
+	        option.textContent = status;
+	        this.#statusSelect.appendChild(option);
+	    }
+	    this.#statusSelect.selectedIndex = 0;
+
+	    if (this.#dialog !== null && typeof this.#dialog.showModal === "function") {
+	        this.#dialog.showModal();
+	    }
 	}
+
 	
 	/**
 	 * Closes the modal box
@@ -96,19 +110,9 @@ class TaskBox extends HTMLElement {
 	 * @param {Array<string>} list - Array of statuses (e.g. ["WAITING", "ACTIVE", "DONE"])
 	*/
 	setStatuseslist(list) {
-		// Clear previous options using DOM manipulation (no unsafe innerHTML)
-	    while (this.statusSelect.firstChild !== null) {
-	       this.statusSelect.removeChild(this.statusSelect.firstChild);
-		}
-
-		// Populate options safely
-		list.forEach((status) => {
-			const option = document.createElement("option");
-			option.value = status;
-			option.textContent = status;
-			this.statusSelect.appendChild(option);
-	    });
+	    this.#statuses = list;
 	}
+
 	
 	/**
 	 * Adds a callback to run on clicking the 'Add task' button
@@ -117,7 +121,7 @@ class TaskBox extends HTMLElement {
 	*/
 	addNewtaskCallback(callback) {
 		if (typeof callback === "function") {
-			this.callbacks.push(callback);
+			this.#callbacks.push(callback);
 		}
 	}
 }
