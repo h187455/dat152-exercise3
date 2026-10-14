@@ -29,11 +29,10 @@ taskrow.innerHTML = `
   * Manage view with list of tasks
   */
 class TaskList extends HTMLElement {
-	
 	#statuses = []; 
-	#shadow; 
-	#changeStatusCallback; 
-	#deleteTaskCallback;
+	#shadow;
+	#changeStatusCallback = null;
+	#deleteTaskCallback = null;
 
     constructor() {
         super();
