@@ -1,21 +1,21 @@
 const template = document.createElement("template");
 template.innerHTML = `
-    <link rel="stylesheet" type="text/css" href="${new URL('taskbox.css',import.meta.url)}">
+	<link rel="stylesheet" type="text/css" href="${new URL('taskbox.css',import.meta.url)}">
 
-	<dialog>
+	<dialog id="taskModal">
 	   <!-- Modal content -->
-	   <span class="close-btn">&times;</span>
+	   <span id="closeBtn" class="close-btn">&times;</span>
 	   <div>
 	       <div>Title:</div>
 	       <div>
-	          <input type="text" size="25" maxlength="80" placeholder="Task title" autofocus/>
+	          <input id="taskTitle" type="text" size="25" maxlength="80" placeholder="Task title" autofocus/>
 	       </div>
 	       <div>Status:</div>
 	       <div>
-	           <select></select>
+	           <select id="taskStatus"></select>
 	       </div>
 	   </div>
-	   <p><button type="submit">Add task</button></p>
+	   <p><button id="addBtn" type="submit">Add task</button></p>
 	</dialog>
 `;
 
@@ -24,26 +24,28 @@ template.innerHTML = `
   * Manage the modal box for adding a new task
   */
 class TaskBox extends HTMLElement {
-	
+	#shadow;
 	#dialog; 
 	#titleInput; 
 	#statusSelect; 
 	#addBtn; 
 	#closeBtn; 
-	#callbacks = [];
+	#newTaskCallback = null;
 	#statuses = [];
 
     constructor() {
         super();
+		// Isolate the component DOM tree through shadow DOM
+		this.#shadow = this.attachShadow({ mode: 'closed' });
 		const copy = template.content.cloneNode(true);
-		this.appendChild(copy);
+		this.#shadow.appendChild(copy);
 		
-		// Store references to internal DOM elements
-		this.#dialog = this.querySelector("dialog");
-		this.#titleInput = this.querySelector("input[type='text']");
-		this.#statusSelect = this.querySelector("select");
-		this.#addBtn = this.querySelector("button[type='submit']");
-		this.#closeBtn = this.querySelector("span");
+		// Store references using the faster getElementById on the shadow root
+		this.#dialog = this.#shadow.getElementById("taskModal");
+		this.#titleInput = this.#shadow.getElementById("taskTitle");
+		this.#statusSelect = this.#shadow.getElementById("taskStatus");
+		this.#addBtn = this.#shadow.getElementById("addBtn");
+		this.#closeBtn = this.#shadow.getElementById("closeBtn");
 		
 		// Close when clicking the 'x'
 		this.#closeBtn.addEventListener("click", () => {
@@ -66,8 +68,10 @@ class TaskBox extends HTMLElement {
 				status: status
 			};
 
-			// Run all registered callbacks with newTask
-			this.#callbacks.forEach((callback) => callback(newTask));
+			// Run the single registered callback
+			if (typeof this.#newTaskCallback === "function") {
+			    this.#newTaskCallback(newTask);
+			}
 		});	
     }
 
@@ -117,12 +121,10 @@ class TaskBox extends HTMLElement {
 	/**
 	 * Adds a callback to run on clicking the 'Add task' button
 	 * @public
-	 * @param {Function} callback - Function receiving the new task object: (task) => {}
+	 * @param {Function} callbackFunction receiving the new task object: (task) => {}
 	*/
 	addNewtaskCallback(callback) {
-		if (typeof callback === "function") {
-			this.#callbacks.push(callback);
-		}
+	    this.#newTaskCallback = callback;
 	}
 }
 customElements.define('group8-taskbox', TaskBox);
