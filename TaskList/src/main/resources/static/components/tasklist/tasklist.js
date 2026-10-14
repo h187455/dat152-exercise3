@@ -102,7 +102,8 @@ class TaskList extends HTMLElement {
 
 	    select.addEventListener("change", () => {
 	        const newStatus = select.value;
-	        if (newStatus === tr.cells[1].textContent) {
+
+	        if (newStatus === "0" || newStatus === tr.cells[1].textContent) {
 	            select.value = "0";
 	            return;
 	        }
